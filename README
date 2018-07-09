@@ -1,0 +1,14 @@
+# Installation requirements
+ - Python 2.7.x
+ - mpi4py
+
+ - Cantera with python interface https://www.cantera.org
+ - Ipopt https://projects.coin-or.org/Ipopt
+ - PyIpopt http://github.com/xuy/pyipopt.git
+
+# Running the code
+ - The code can be run with MPI with the following command using mpirun
+     mpirun -np <nprocs> python ./src/LaunchMPI.py ./examples/input_example_gri.py > log.txt
+
+The input parameters are detailed in the examples provided in the example folder.
+
