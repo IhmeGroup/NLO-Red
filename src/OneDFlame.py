@@ -109,34 +109,28 @@ class OneDFlame(object):
         f.set_refine_criteria(ratio=2, slope=0.05, curve=0.05)
         f.solve(loglevel)
         f.show_solution()
-        print(
-            'multicomponent flamespeed after refinement= {0:7f} m/s'.format(f.u[0]))
+        logging.debug(
+            'Flame speed for the case = {0:7f} m/s'.format(f.u[0]))
         f.save(filename='%s/save_%i.xml' % (Global.directory, self.id),
                name='solution',  description='vamos')
 
         Global.flame_inits[self.id] = True
 
     def getSl(self):
+        # Handling different cases
         if not(self.firstflag):
+            # Not the first time computation
             if not(Global.flame_inits[self.id]):
-                print 'AIE AIE AIE'
                 self.initfromFile('%s/save_%i.xml' %
                                   (Global.directory, self.id))
-
-            print 'regular case'
-
             f = Global.sims[self.id]
             gas = Global.gases[self.id]
             self.putMultiplier(gas)
             f.solve(refine_grid=False)
-
         else:
-            print 'first computation of this flame if no start file'
-
+            # First time computation
             filename = '%s/start_%i.xml' % (Global.directory, self.id)
-
-            print 'FILENAME', filename
-
+            # If file exists, restart from file
             if os.path.exists(filename):
                 self.initfromFile(filename)
                 f = Global.sims[self.id]
@@ -145,14 +139,13 @@ class OneDFlame(object):
                 f.solve(refine_grid=False)
                 f.save(filename='%s/save_%i.xml' % (Global.directory,
                                                     self.id), name='solution',  description='vamos')
-                print 'done init from start and save'
+            # Otherwise solve the flame from scratch
             else:
                 self.initfromScratch()
                 f = Global.sims[self.id]
                 gas = Global.gases[self.id]
                 self.putMultiplier(gas)
                 f.solve(refine_grid=False)
-
         return f.u[0]
 
     def getQuantity(self):
