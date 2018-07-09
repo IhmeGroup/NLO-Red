@@ -152,7 +152,8 @@ if __name__ == '__main__':
                     partitioning.append([-1])
             else:
                 partitioning.append([-1])
-        print 'Debug partitioning', partitioning
+
+        logging.debug('Partitioning: %s' % str(partitioning))
 
         Global.partitioning = partitioning
 
@@ -224,16 +225,18 @@ if __name__ == '__main__':
             logging.error('Wrong length for x0')
             sys.exit(0)
 
+        logging.info('Initial x0 vector')
         for k in range(len(species_damp)):
-            print gas.species_names[species_index_damp[k]], x0[k]
+            logging.info('%s %s' %
+                         (gas.species_names[species_index_damp[k]], x0[k]))
         logging.info('x0 passed initial: %s' % str(x0))
 
-        intermediate_calc = False
-        if hasattr(up, 'intermediate'):
-            if up.intermediate:
-                intermediate_calc = True
+        type_calc = 'OPT'
+        if hasattr(up, 'type_calc'):
+            type_calc = up.type_calc
 
-        if not(intermediate_calc):
+        if type_calc == 'OPT':
+            # Optimization case
             logging.debug('IPOpt initialization')
             nlp = pyipopt.create(nvar, x_L, x_U, ncon, g_L, g_U, nnzj, nnzh,
                                  OptFn.eval_f, OptFn.eval_grad_f, OptFn.eval_g, eval_jac_g_wrapper)
@@ -245,8 +248,11 @@ if __name__ == '__main__':
 
             logging.info('Final solution: %s' % x)
             for k in range(len(species_damp)):
-                print gas.species_names[species_index_damp[k]], x[k]
-        else:
+                logging.info('%s %s' %
+                             (gas.species_names[species_index_damp[k]], x[k]))
+
+        elif type_calc == 'VAL':
+            # Validation case
             logging.info('Validation calculation')
 
             x1 = np.array(x0)
@@ -300,3 +306,48 @@ if __name__ == '__main__':
                 logging.info('Maximum error AI delay: %s' %
                              np.max(errortab[len(flametab):]))
             logging.info('Maximum error: %s' % np.max((optimized-refs)/refs))
+
+        elif type_calc == 'SA':
+            # Sensivity analysis case
+            tasks = []
+            taskindex = -1
+            perturb = 0.01
+            nvars = len(species_index_damp_init)
+            for k in range(nvars):
+                x0 = np.ones(nvars)
+                x0[k] = 1.0-perturb
+                for case in cases:
+                    taskindex += 1
+                    tasks.append((case, species_index_exclude_init,
+                                  species_index_damp_init, x0, taskindex))
+
+            results = np.array(Par.tasklaunch(tasks))
+            results = results.reshape((nvars, len(cases)))
+            results = np.abs(
+                (results[:, :] - quantityrefs[:])/quantityrefs[:]) / perturb
+            maxi = np.max(results, axis=1)
+
+            sorting = np.argsort(maxi)
+            for indsort in sorting:
+                logging.info('%s %s' %
+                             (gas.species_names[species_index_damp_init[indsort]], maxi[indsort]))
+
+            for currentk in range(1, len(sorting)+1):
+                toremove = sorting[0:currentk]
+                x1 = np.ones(nvars)
+                x1[toremove] = 0.0
+
+                tasks = []
+                taskindex = -1
+                for case in cases:
+                    taskindex += 1
+                    tasks.append((case, species_index_exclude_init,
+                                  species_index_damp_init, x1, taskindex))
+
+                results = np.array(Par.tasklaunch(tasks))
+                refs = quantityrefs
+                logging.info('Last species removed: %s' %
+                             gas.species_names[species_index_damp_init[toremove[-1]]])
+                logging.info('Total error with %s removed species: %s' %
+                             (currentk, np.max(np.abs((results-refs)/refs))))
+                logging.info('Errors: %s' % str(np.abs((results-refs)/refs)))
