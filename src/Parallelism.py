@@ -1,5 +1,5 @@
 import Global
-
+import logging
 
 def enum(*sequential, **named):
     # Enumerated type in Python
@@ -53,11 +53,11 @@ def tasklaunch(tasks):
         elif tag == tags.DONE:
             resultarray[data[0]] = data[1]
             tasks_done += 1
-            print 'Worker done', source, 'parititon', partitioning[source-1]
-            print 'Task dones', tasks_done, 'Total', len(tasks)
+            logging.debug('Task done on worker %s for partition %s'%(source,partitioning[source-1]))
+            logging.debug('Tasks done = %s/%s'%(tasks_done,len(tasks)))
         elif tag == tags.EXIT:
-            print("Worker %d exited YOU ARE IN TROUBLE." % source)
+            logging.debug('Worker %s exited. Trouble?'%source)
             closed_workers += 1
 
-    print 'Launching tasks and result collection done'
+    logging.info('Task launching and result collection done')
     return resultarray

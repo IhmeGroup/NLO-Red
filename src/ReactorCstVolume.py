@@ -2,7 +2,7 @@ import numpy as np
 import cantera as ct
 import time as chrono
 import Global
-
+import logging
 
 class ReactorCstVolume(object):
 
@@ -26,6 +26,7 @@ class ReactorCstVolume(object):
         gas.TPX = self.Tin, self.P, x
 
         gas.equilibrate('UV')
+        # Ignition time = 90% of the final temperature
         self.Ttarget = 0.9 * gas.T
         return
 
@@ -96,7 +97,9 @@ class ReactorCstVolume(object):
         weight = (self.Ttarget - curT0)/(curT1-curT0)
 
         AItime = (1.-weight) * time0 + weight * time1
-        print 'Done AI'
+
+        logging.debug('Done Ignition time computation')
+
         return AItime
 
     def getQuantity(self):
