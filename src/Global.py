@@ -1,0 +1,5 @@
+global threshold
+global noptim
+global cases
+global species_index_damp
+global species_index_exclude
