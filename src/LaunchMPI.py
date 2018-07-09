@@ -72,9 +72,15 @@ if __name__ == '__main__':
             os.makedirs(up.directory)
 
         logfile = 'out.log'
-        logging.basicConfig(filename=logfile, level=logging.INFO)
+        verbosity = 20
+        if hasattr(up, 'verbosity'):
+            if up.verbosity == 'DEBUG':
+                verbosity = 10
+            elif up.verbosity == 'INFO':
+                verbosity = 20
+        logging.basicConfig(filename=logfile, level=verbosity)
+        
         logging.info('Start')
-
         # Initializing gas phase and damping
         gas = Global.gas
 
