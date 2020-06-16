@@ -1,5 +1,6 @@
 import numpy as np
 import cantera as ct
+import logging
 import os
 import Global
 
@@ -95,7 +96,7 @@ class OneDFlame(object):
         gas.TPX = self.Tin, self.P, x
 
         # Set up flame object
-        Global.sims[self.id] = ct.FreeFlame(gas, width=width)
+        Global.sims[self.id] = ct.FreeFlame(gas)
         f = Global.sims[self.id]
 
         f.set_refine_criteria(ratio=3, slope=0.06, curve=0.12)

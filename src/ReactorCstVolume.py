@@ -83,22 +83,32 @@ class ReactorCstVolume(object):
         time1 = 0.0
         curT0 = r.T
         curT1 = r.T
+        iteration = 0
 
         #sim.atol = 1e-7
         #sim.rtol = 1e-4
 
-        while curT1 < self.Ttarget:
-            time = sim.step()
-            curT0 = curT1
-            curT1 = r.T
-            time0 = time1
-            time1 = time
+        try:
+            while curT1 < self.Ttarget:
+                time = sim.step()
+                curT0 = curT1
+                curT1 = r.T
+                time0 = time1
+                time1 = time
+                iteration += 1
+                if (time > 4.e2):
+                    print('Current time too large, continuing')
+                    return 4.e2
+                if (iteration > 100000):
+                    print('Max Iteration reached, continuing')
+                    return 0.
+        except:
+            print('Failed! Continuing...')
+            return 4.e2
 
         weight = (self.Ttarget - curT0)/(curT1-curT0)
 
         AItime = (1.-weight) * time0 + weight * time1
-
-        logging.debug('Done Ignition time computation')
 
         return AItime
 

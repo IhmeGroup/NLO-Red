@@ -8,7 +8,7 @@
 
 # Running the code
  - The code can be run with MPI with the following command using mpirun
-     mpirun -np <nprocs> python ./src/LaunchMPI.py ./examples/input_example_gri.py > log.txt
+     mpirun -np <nprocs> python ./src/LaunchMPI.py ./examples/CH4/NLO/input.py > log
 
 The input parameters are detailed in the examples provided in the example folder.
 

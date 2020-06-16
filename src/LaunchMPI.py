@@ -314,31 +314,53 @@ if __name__ == '__main__':
             logging.info('Maximum error: %s' % np.max((optimized-refs)/refs))
 
         elif type_calc == 'SA':
+            logging.info('SA')
             # Sensivity analysis case
-            tasks = []
-            taskindex = -1
-            perturb = 0.01
-            nvars = len(species_index_damp_init)
-            for k in range(nvars):
-                x0 = np.ones(nvars)
-                x0[k] = 1.0-perturb
-                for case in cases:
-                    taskindex += 1
-                    tasks.append((case, species_index_exclude_init,
-                                  species_index_damp_init, x0, taskindex))
-
-            results = np.array(Par.tasklaunch(tasks))
-            results = results.reshape((nvars, len(cases)))
-            results = np.abs(
-                (results[:, :] - quantityrefs[:])/quantityrefs[:]) / perturb
-            maxi = np.max(results, axis=1)
+            if hasattr(up, 'SA_results'):
+                logging.info('Read sensitivities from a file')
+                file = open(up.SA_results, 'r')
+                maxi = [0 for i in range(len(species_index_damp_init))]
+                for line in file:
+                    data = line.split()
+                    idx = 0
+                    for jdx in range(len(species_index_damp_init)):
+                        if gas.species_names[species_index_damp_init[jdx]] == data[0]:
+                            idx=jdx
+                            break
+                    maxi[idx] = float(data[1])
+            else:
+                tasks = []
+                taskindex = -1
+                perturb = 0.01
+                nvars = len(species_index_damp_init)
+                for k in range(nvars):
+                    x0 = np.ones(nvars)
+                    x0[k] = 1.0-perturb
+                    for case in cases:
+                        taskindex += 1
+                        tasks.append((case, species_index_exclude_init,
+                                      species_index_damp_init, x0, taskindex))
+                results = np.array(Par.tasklaunch(tasks))
+                results = results.reshape((nvars, len(cases)))
+                results = np.abs(
+                    (results[:, :] - quantityrefs[:])/quantityrefs[:]) / perturb
+                maxi = np.max(results, axis=1)
 
             sorting = np.argsort(maxi)
             for indsort in sorting:
                 logging.info('%s %s' %
                              (gas.species_names[species_index_damp_init[indsort]], maxi[indsort]))
 
-            for currentk in range(1, len(sorting)+1):
+            nvars = len(species_index_damp_init)
+            currentkStart = 1
+            if hasattr(up, 'currentkStart'):
+                currentkStart = int(up.currentkStart)
+            currentkStep = 1
+            if hasattr(up, 'currentkStep'):
+                currentkStep = int(up.currentkStep)
+
+            error_history = []
+            for currentk in range(currentkStart, len(sorting)+1, currentkStep):
                 toremove = sorting[0:currentk]
                 x1 = np.ones(nvars)
                 x1[toremove] = 0.0
@@ -352,8 +374,10 @@ if __name__ == '__main__':
 
                 results = np.array(Par.tasklaunch(tasks))
                 refs = quantityrefs
+                error_history.append(np.max(np.abs((results-refs)/refs)))
                 logging.info('Last species removed: %s' %
                              gas.species_names[species_index_damp_init[toremove[-1]]])
                 logging.info('Total error with %s removed species: %s' %
                              (currentk, np.max(np.abs((results-refs)/refs))))
                 logging.info('Errors: %s' % str(np.abs((results-refs)/refs)))
+                logging.info('Error history: %s' % str(error_history))
