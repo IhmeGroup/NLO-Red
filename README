@@ -12,3 +12,10 @@
 
 The input parameters are detailed in the examples provided in the example folder.
 
+# Installation of NERSC Cori
+Use GNU compilers when compiling. This is not needed when running the executables:
+module swap PrgEnv-intel PrgEnv-gnu
+
+When running on compute node, disable this module:
+module unload craype-hugepages2M
+This is a known issue for Cray systems: https://www.gitmemory.com/issue/manodeep/Corrfunc/244/802241293
