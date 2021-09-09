@@ -16,6 +16,13 @@ The input parameters are detailed in the examples provided in the example folder
 Use GNU compilers when compiling. This is not needed when running the executables:
 module swap PrgEnv-intel PrgEnv-gnu
 
+Specify compiler in Ipopt build:
+env CC=/opt/cray/pe/craype/2.6.2/bin/cc CXX=/opt/cray/pe/craype/2.6.2/bin/CC F77=/opt/cray/pe/craype/2.6.2/bin/ftn ./coinbrew build Ipopt --prefix=/global/homes/n/nguyenly/Utilities/IpoptInstall --test --no-prompt --verbosity=3
+
+Specify compiler in pyipopt build by editing setup.py and add these two lines:
+os.environ["CC"] = "/opt/cray/pe/craype/2.6.2/bin/cc"
+os.environ["CXX"] = "/opt/cray/pe/craype/2.6.2/bin/CC"
+
 When running on compute node, disable this module:
 module unload craype-hugepages2M
 This is a known issue for Cray systems: https://www.gitmemory.com/issue/manodeep/Corrfunc/244/802241293
