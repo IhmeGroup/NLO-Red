@@ -12,7 +12,7 @@
 
 The input parameters are detailed in the examples provided in the example folder.
 
-# Installation of NERSC Cori
+# Installation on NERSC Cori
 Use GNU compilers when compiling. This is not needed when running the executables:
 module swap PrgEnv-intel PrgEnv-gnu
 
