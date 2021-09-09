@@ -1,5 +1,5 @@
 # Installation requirements
- - Python 2.7.x
+ - Python
  - mpi4py
 
  - Cantera with python interface https://www.cantera.org
